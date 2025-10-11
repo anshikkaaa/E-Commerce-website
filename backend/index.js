@@ -24,14 +24,13 @@ mongoose.connect(process.env.MONGODB_URL)
 
 const jwtSecret = process.env.JWT_SECRET;
 
-// Multer storage for local images
+// Multer storage for images
 const storage = multer.diskStorage({
     destination: './upload/images',
     filename: (req, file, cb) => {
         cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
     }
 });
-
 const upload = multer({ storage });
 app.use('/images', express.static('upload/images'));
 
@@ -43,7 +42,7 @@ app.post("/upload", upload.single('product'), (req, res) => {
     });
 });
 
-// Product model
+// Product schema
 const Product = mongoose.model("Product", {
     id: { type: Number, required: true },
     name: { type: String, required: true },
@@ -55,7 +54,7 @@ const Product = mongoose.model("Product", {
     available: { type: Boolean, default: true },
 });
 
-// User model
+// User schema
 const Users = mongoose.model('Users', {
     name: String,
     email: { type: String, unique: true },
@@ -65,11 +64,10 @@ const Users = mongoose.model('Users', {
 });
 
 // Routes
-
-// Add product
 app.post('/addproduct', async (req, res) => {
-    let products = await Product.find({});
-    let id = products.length > 0 ? products[products.length - 1].id + 1 : 1;
+    const products = await Product.find({});
+    const id = products.length > 0 ? products[products.length - 1].id + 1 : 1;
+
     const product = new Product({
         id,
         name: req.body.name,
@@ -78,11 +76,20 @@ app.post('/addproduct', async (req, res) => {
         new_price: req.body.new_price,
         old_price: req.body.old_price,
     });
+
     await product.save();
     res.json({ success: true, name: req.body.name });
 });
 
-// Get all products
+app.post('/removeproduct', async (req, res) => {
+    await Product.findOneAndDelete({ id: req.body.id });
+    console.log("removed");
+    res.json({
+        success: true,
+        name: req.body.name
+    })
+})
+
 app.get('/allproducts', async (req, res) => {
     const products = await Product.find({});
     res.send(products);
@@ -120,6 +127,20 @@ app.post('/login', async (req, res) => {
     const token = jwt.sign({ user: { id: user._id } }, jwtSecret);
     res.json({ success: true, token });
 });
+
+app.get('/newcollections', async (req, res) => {
+    let products = await Product.find({});
+    let newcollection = products.slice(1).slice(-8);
+    console.log("new collection fetched");
+    res.send(newcollection);
+})
+
+app.get('/popularinwomen', async (req, res) => {
+    let products = await Product.find({ category: "women" });
+    let popular_in_women = products.slice(0, 4);
+    console.log("popular in women fetched");
+    res.send(popular_in_women);
+})
 
 // Middleware to fetch user
 const fetchUser = async (req, res, next) => {
