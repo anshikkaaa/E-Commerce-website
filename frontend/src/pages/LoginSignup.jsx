@@ -17,7 +17,7 @@ export const LoginSignup = () => {
   const login = async(req,res)=>{
     console.log("login function executed" , formData)
     let responseData;
-    await fetch('http://localhost:4000/login' , {
+    await fetch('https://e-commerce-website-backend-f3b5.onrender.com/login' , {
       method:'POST',
       headers:{
         Accept:'application/form-data',
@@ -38,7 +38,7 @@ export const LoginSignup = () => {
   const signup = async(req,res)=>{
     console.log("signup function executed" , formData)
     let responseData;
-    await fetch('http://localhost:4000/signup' , {
+    await fetch('https://e-commerce-website-backend-f3b5.onrender.com/signup' , {
       method:'POST',
       headers:{
         Accept:'application/form-data',
