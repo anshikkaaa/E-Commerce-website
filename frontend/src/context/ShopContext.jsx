@@ -1,54 +1,52 @@
-import React, { createContext, useEffect, useState } from 'react'
-// import all_product from '../Components/Assets/all_product'
-// import { CartItems } from '../Components/CartItems/CartItems';
+import React, { createContext, useEffect, useState } from 'react';
 
 export const ShopContext = createContext(null);
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const getDefaultCart = () => {
     let cart = {};
-    for (let index = 0; index < 300 + 1; index++) {
+    for (let index = 0; index <= 300; index++) {
         cart[index] = 0;
     }
     return cart;
 }
 
 const ShopContextProvider = (props) => {
-
     const [all_product, setAll_Product] = useState([]);
-
     const [cartItems, setCartItems] = useState(getDefaultCart());
 
     useEffect(() => {
         fetch(`${backendUrl}/allproducts`)
             .then((response) => response.json())
-            .then((data) => setAll_Product(data))
+            .then((data) => setAll_Product(data));
+
         if (localStorage.getItem('auth-token')) {
-            fetch('${backendUrl}/getcart', {
+            fetch(`${backendUrl}/getcart`, {  // <-- fixed backticks
                 method: 'POST',
                 headers: {
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    Accept: 'application/json',
                     'Content-Type': 'application/json',
+                    'auth-token': localStorage.getItem('auth-token')
                 },
-                body: '',
+                body: JSON.stringify({}) // send an empty object instead of ''
             })
-                .then((response) => response.json())
-                .then((data) => setCartItems(data))
+            .then((response) => response.json())
+            .then((data) => setCartItems(data));
         }
-    }, [])
+    }, []);
 
     const addtoCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }))
+        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+
         if (localStorage.getItem('auth-token')) {
             fetch(`${backendUrl}/addtocart`, {
                 method: 'POST',
                 headers: {
-                     Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    Accept: 'application/json',
                     'Content-Type': 'application/json',
+                    'auth-token': localStorage.getItem('auth-token')
                 },
-                body: JSON.stringify({ "itemId": itemId }),
+                body: JSON.stringify({ itemId })
             })
             .then((response) => response.json())
             .then((data) => console.log(data));
@@ -56,19 +54,20 @@ const ShopContextProvider = (props) => {
     }
 
     const removefromCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }))
+        setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
+
         if (localStorage.getItem('auth-token')) {
             fetch(`${backendUrl}/removefromcart`, {
                 method: 'POST',
                 headers: {
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
+                    Accept: 'application/json',
                     'Content-Type': 'application/json',
+                    'auth-token': localStorage.getItem('auth-token')
                 },
-                body: JSON.stringify({ "itemId": itemId }),
+                body: JSON.stringify({ itemId })
             })
-                .then((response) => response.json())
-                .then((data) => console.log(data))
+            .then((response) => response.json())
+            .then((data) => console.log(data));
         }
     }
 
@@ -76,8 +75,8 @@ const ShopContextProvider = (props) => {
         let totalAmount = 0;
         for (const item in cartItems) {
             if (cartItems[item] > 0) {
-                let itemInfo = all_product.find((product) => product.id === Number(item))
-                totalAmount += itemInfo.new_price * cartItems[item]
+                const itemInfo = all_product.find((product) => product.id === Number(item));
+                totalAmount += itemInfo.new_price * cartItems[item];
             }
         }
         return totalAmount;
@@ -93,13 +92,12 @@ const ShopContextProvider = (props) => {
         return totalItem;
     }
 
-    const contextValue = { all_product, cartItems, addtoCart, removefromCart, getTotalCartAmount, getTotalCartItems };
-
     return (
-        <ShopContext.Provider value={contextValue}>
+        <ShopContext.Provider value={{ all_product, cartItems, addtoCart, removefromCart, getTotalCartAmount, getTotalCartItems }}>
             {props.children}
         </ShopContext.Provider>
-    )
+    );
 }
 
-export default ShopContextProvider
+export default ShopContextProvider;
+
