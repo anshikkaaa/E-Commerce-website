@@ -12,7 +12,11 @@ export const AddProduct = () => {
         old_price:""
     })
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+    const backendUrl = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000').replace(/\/$/, '');
+    
+    // Debug: Log the backend URL
+    console.log('Environment VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+    console.log('Final backendUrl:', backendUrl);
 
     const imageHandler = (e)=>{
         setImage(e.target.files[0])
@@ -23,34 +27,83 @@ export const AddProduct = () => {
     }
 
     const Add_Product = async() => {
-        console.log(productDetails)
-        let responseData;
-        let product = productDetails;
+        console.log('Add Product clicked');
+        console.log('Product Details:', productDetails);
+        console.log('Backend URL:', backendUrl);
+        console.log('Image:', image);
 
-        let formData = new FormData()
-        formData.append('product' , image);
+        // Validation
+        if (!productDetails.name) {
+            alert('Please enter product name');
+            return;
+        }
+        if (!productDetails.new_price || !productDetails.old_price) {
+            alert('Please enter both old and new prices');
+            return;
+        }
+        if (!image) {
+            alert('Please select an image');
+            return;
+        }
 
-        await fetch(`${backendUrl}/upload`, {
-            method:'POST',
-            headers:{
-                Accept:'application/json'
-            },
-            body:formData,
-            // mode: 'cors'
-        }).then((resp) => resp.json()).then((data)=>{responseData=data})
-        if(responseData.success){
-            product.image = responseData.image_url;
-            console.log(product);
-            await fetch(`${backendUrl}/addproduct`, {
+        try {
+            let responseData;
+            let product = productDetails;
+
+            let formData = new FormData()
+            formData.append('product' , image);
+
+            console.log('Uploading image to:', `${backendUrl}/upload`);
+            
+            const uploadResponse = await fetch(`${backendUrl}/upload`, {
                 method:'POST',
                 headers:{
-                    Accept:'application/json',
-                    'Content-Type':'application/json',
+                    Accept:'application/json'
                 },
-                body:JSON.stringify(product),
-            }).then((resp) => resp.json()).then((data)=>{
-                data.success?alert("product added"):alert("failed")
-            })
+                body:formData,
+            });
+            
+            console.log('Upload response status:', uploadResponse.status);
+            responseData = await uploadResponse.json();
+            console.log('Upload response data:', responseData);
+
+            if(responseData.success){
+                product.image = responseData.image_url;
+                console.log('Product with image URL:', product);
+                
+                const addProductResponse = await fetch(`${backendUrl}/addproduct`, {
+                    method:'POST',
+                    headers:{
+                        Accept:'application/json',
+                        'Content-Type':'application/json',
+                    },
+                    body:JSON.stringify(product),
+                });
+                
+                console.log('Add product response status:', addProductResponse.status);
+                const addProductData = await addProductResponse.json();
+                console.log('Add product response data:', addProductData);
+                
+                if(addProductData.success) {
+                    alert("Product added successfully!");
+                    // Reset form
+                    setProductDetails({
+                        name:"",
+                        image:"",
+                        category:"women",
+                        new_price:"",
+                        old_price:""
+                    });
+                    setImage(false);
+                } else {
+                    alert("Failed to add product");
+                }
+            } else {
+                alert("Image upload failed: " + (responseData.message || "Unknown error"));
+            }
+        } catch (error) {
+            console.error('Error adding product:', error);
+            alert("Error adding product: " + error.message);
         }
     }
 

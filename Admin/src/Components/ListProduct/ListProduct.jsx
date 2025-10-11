@@ -4,7 +4,7 @@ import cross_icon from '../../assets/cross_icon.png'
 
 export const ListProduct = () => {
   const [allproducts , setAllProducts] = useState([]);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+  const backendUrl = (import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000').replace(/\/$/, '');
 
   const fetchInfo = async()=>{
     await fetch(`${backendUrl}/allproducts`)
