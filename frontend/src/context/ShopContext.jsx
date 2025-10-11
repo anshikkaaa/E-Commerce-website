@@ -3,6 +3,10 @@ import React, { createContext, useEffect, useState } from 'react';
 export const ShopContext = createContext(null);
 const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
 
+// Debug logging
+console.log('Frontend Environment REACT_APP_BACKEND_URL:', process.env.REACT_APP_BACKEND_URL);
+console.log('Frontend Final backendUrl:', backendUrl);
+
 const getDefaultCart = () => {
     let cart = {};
     for (let index = 0; index <= 300; index++) {
@@ -16,22 +20,44 @@ const ShopContextProvider = (props) => {
     const [cartItems, setCartItems] = useState(getDefaultCart());
 
     useEffect(() => {
+        console.log('Fetching products from:', `${backendUrl}/allproducts`);
         fetch(`${backendUrl}/allproducts`)
-            .then((response) => response.json())
-            .then((data) => setAll_Product(data));
+            .then((response) => {
+                console.log('Products response status:', response.status);
+                return response.json();
+            })
+            .then((data) => {
+                console.log('Products loaded:', data);
+                setAll_Product(data);
+            })
+            .catch((error) => {
+                console.error('Error fetching products:', error);
+            });
 
         if (localStorage.getItem('auth-token')) {
-            fetch(`${backendUrl}/getcart`, {  // <-- fixed backticks
+            console.log('Fetching cart from:', `${backendUrl}/getcart`);
+            fetch(`${backendUrl}/getcart`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json',
                     'auth-token': localStorage.getItem('auth-token')
                 },
-                body: JSON.stringify({}) // send an empty object instead of ''
+                body: JSON.stringify({})
             })
-            .then((response) => response.json())
-            .then((data) => setCartItems(data));
+            .then((response) => {
+                console.log('Cart response status:', response.status);
+                return response.json();
+            })
+            .then((data) => {
+                console.log('Cart loaded:', data);
+                setCartItems(data);
+            })
+            .catch((error) => {
+                console.error('Error fetching cart:', error);
+            });
+        } else {
+            console.log('No auth token found, using default cart');
         }
     }, []);
 
@@ -76,7 +102,9 @@ const ShopContextProvider = (props) => {
         for (const item in cartItems) {
             if (cartItems[item] > 0) {
                 const itemInfo = all_product.find((product) => product.id === Number(item));
-                totalAmount += itemInfo.new_price * cartItems[item];
+                if (itemInfo && itemInfo.new_price) {
+                    totalAmount += itemInfo.new_price * cartItems[item];
+                }
             }
         }
         return totalAmount;
@@ -86,7 +114,10 @@ const ShopContextProvider = (props) => {
         let totalItem = 0;
         for (const item in cartItems) {
             if (cartItems[item] > 0) {
-                totalItem += cartItems[item];
+                const itemInfo = all_product.find((product) => product.id === Number(item));
+                if (itemInfo) {
+                    totalItem += cartItems[item];
+                }
             }
         }
         return totalItem;
