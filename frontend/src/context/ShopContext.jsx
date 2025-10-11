@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 
 export const ShopContext = createContext(null);
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:4000';
 
 const getDefaultCart = () => {
     let cart = {};
