@@ -13,7 +13,10 @@ const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
 
 app.use(express.json());
 app.use(cors({
-    origin: ['https://e-commerce-website-frontend-0bwq.onrender.com'], // frontend URL
+    origin: [
+        'https://e-commerce-website-frontend-0bwq.onrender.com', // frontend URL
+        'https://e-commerce-website-admin-xyup.onrender.com'   // admin panel URL
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
