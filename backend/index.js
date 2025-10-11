@@ -4,6 +4,7 @@ const port = process.env.PORT || 4000;
 // API_KEY = 363222139992227
 // API_SECRET = fCaTcNFWalgGxBDOpz4IEfPKO6E
 // const MONGODB_URL = "mongodb+srv://anshikajindal4444:lFCX2NCI0HwsQuiU@cluster0.krrhaul.mongodb.net/e-commerce"
+const backendUrl = process.env.BACKEND_URL || `http://localhost:${port}`;
 
 const express = require("express")
 const app = express()
@@ -16,7 +17,11 @@ const cors = require("cors")
 const { type } = require("os")
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ['https://e-commerce-website-frontend-0bwq.onrender.com'], // frontend URL
+    methods: ["GET","POST","PUT","DELETE"],
+    credentials: true
+}));
 
 // mongoose.connect("mongodb+srv://anshikajindal4444:lFCX2NCI0HwsQuiU@cluster0.krrhaul.mongodb.net/e-commerce")
 mongoose.connect(process.env.MONGODB_URL)
@@ -46,7 +51,8 @@ app.use('/images', express.static('upload/images'))
 app.post("/upload", upload.single('product'), (req, res) => {
     res.json({
         success: 1,
-        image_url: `http://localhost:${port}/images/${req.file.filename}`
+        // image_url: `http://localhost:${port}/images/${req.file.filename}`
+      image_url: `${backendUrl}/images/${req.file.filename}`
     })
 })
 
@@ -169,11 +175,11 @@ app.post('/signup', async (req, res) => {
 
     const data = {
         user: {
-            id: user.id
+            id: user._id
         }
     }
 
-    const token = jwt.sign(data, 'secret_ecom')
+    const token = jwt.sign(data, jwtSecret)
     res.json({ success: true, token })
 })
 
@@ -188,7 +194,7 @@ app.post('/login', async (req, res) => {
                     id: user.id
                 }
             }
-            const token = jwt.sign(data, 'secret_ecom')
+            const token = jwt.sign(data, jwtSecret)
             res.json({ success: true, token })
         }
         else {
@@ -222,7 +228,7 @@ const fetchUser = async (req, res, next) => {
     }
     else {
         try {
-            const data = jwt.verify(token, 'secret_ecom');
+            const data = jwt.verify(token, jwtSecret);
             req.user = data.user;
             next();
         } catch (error) {
