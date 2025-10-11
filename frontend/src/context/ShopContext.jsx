@@ -30,7 +30,7 @@ const ShopContextProvider = (props) => {
                     'auth-token': `${localStorage.getItem('auth-token')}`,
                     'Content-Type': 'application/json',
                 },
-                body: "",
+                body: JSON.stringify({}),
             })
                 .then((response) => response.json())
                 .then((data) => setCartItems(data))
@@ -43,7 +43,7 @@ const ShopContextProvider = (props) => {
             fetch('https://e-commerce-website-backend-f3b5.onrender.com/addtocart', {
                 method: 'POST',
                 headers: {
-                    Accept: 'application/form-data',
+                    // Accept: 'application/form-data',
                     'auth-token': `${localStorage.getItem('auth-token')}`,
                     'Content-Type': 'application/json',
                 },
