@@ -42,6 +42,30 @@ const upload = multer({ storage });
 // Upload route
 app.post("/upload", upload.single('product'), async (req, res) => {
     try {
+        console.log('Upload request received');
+        console.log('File:', req.file);
+        console.log('Cloudinary config:', {
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'NOT SET',
+            api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'NOT SET'
+        });
+
+        if (!req.file) {
+            console.error('No file received');
+            return res.status(400).json({
+                success: 0,
+                message: "No file received"
+            });
+        }
+
+        if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+            console.error('Cloudinary credentials not configured');
+            return res.status(500).json({
+                success: 0,
+                message: "Cloudinary not configured. Please set environment variables."
+            });
+        }
+
         const result = await cloudinary.uploader.upload_stream(
             {
                 resource_type: "auto",
@@ -52,9 +76,10 @@ app.post("/upload", upload.single('product'), async (req, res) => {
                     console.error('Cloudinary upload error:', error);
                     return res.status(500).json({
                         success: 0,
-                        message: "Image upload failed"
+                        message: "Image upload failed: " + error.message
                     });
                 }
+                console.log('Upload successful:', result.secure_url);
                 res.json({
                     success: 1,
                     image_url: result.secure_url
@@ -65,7 +90,7 @@ app.post("/upload", upload.single('product'), async (req, res) => {
         console.error('Upload error:', error);
         res.status(500).json({
             success: 0,
-            message: "Image upload failed"
+            message: "Image upload failed: " + error.message
         });
     }
 });
