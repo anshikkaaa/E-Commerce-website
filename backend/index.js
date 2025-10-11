@@ -5,6 +5,7 @@ const path = require("path");
 const multer = require("multer");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const cloudinary = require("cloudinary").v2;
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -24,22 +25,46 @@ mongoose.connect(process.env.MONGODB_URL)
 
 const jwtSecret = process.env.JWT_SECRET;
 
-// Multer storage for images
-const storage = multer.diskStorage({
-    destination: './upload/images',
-    filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
-    }
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Multer storage for images (in memory for Cloudinary)
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
-app.use('/images', express.static('upload/images'));
 
 // Upload route
-app.post("/upload", upload.single('product'), (req, res) => {
-    res.json({
-        success: 1,
-        image_url: `${backendUrl}/images/${req.file.filename}`
-    });
+app.post("/upload", upload.single('product'), async (req, res) => {
+    try {
+        const result = await cloudinary.uploader.upload_stream(
+            {
+                resource_type: "auto",
+                folder: "ecommerce-products"
+            },
+            (error, result) => {
+                if (error) {
+                    console.error('Cloudinary upload error:', error);
+                    return res.status(500).json({
+                        success: 0,
+                        message: "Image upload failed"
+                    });
+                }
+                res.json({
+                    success: 1,
+                    image_url: result.secure_url
+                });
+            }
+        ).end(req.file.buffer);
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({
+            success: 0,
+            message: "Image upload failed"
+        });
+    }
 });
 
 // Product schema
