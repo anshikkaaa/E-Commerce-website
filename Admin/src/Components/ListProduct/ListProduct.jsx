@@ -4,9 +4,10 @@ import cross_icon from '../../assets/cross_icon.png'
 
 export const ListProduct = () => {
   const [allproducts , setAllProducts] = useState([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
   const fetchInfo = async()=>{
-    await fetch('http://localhost:4000/allproducts')
+    await fetch(`${backendUrl}/allproducts`)
     .then((res)=>res.json())
     .then((data)=>{setAllProducts(data)})
   }
@@ -16,7 +17,7 @@ export const ListProduct = () => {
   },[])
 
   const remove_product = async(id)=>{
-    await fetch ('http://localhost:4000/removeproduct', {
+    await fetch (`${backendUrl}/removeproduct`, {
       method:'POST',
       headers:{
         Accept:'application/json',
