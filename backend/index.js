@@ -1,4 +1,5 @@
-const port = 4000
+require('dotenv').config();
+const port = process.env.PORT || 4000;
 // CLOUD_NAME = dygoauvkw
 // API_KEY = 363222139992227
 // API_SECRET = fCaTcNFWalgGxBDOpz4IEfPKO6E
@@ -17,7 +18,15 @@ const { type } = require("os")
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb+srv://anshikajindal4444:lFCX2NCI0HwsQuiU@cluster0.krrhaul.mongodb.net/e-commerce")
+// mongoose.connect("mongodb+srv://anshikajindal4444:lFCX2NCI0HwsQuiU@cluster0.krrhaul.mongodb.net/e-commerce")
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log(err));
+
+const jwtSecret = process.env.JWT_SECRET;
+const cloudName = process.env.CLOUD_NAME;
+const apiKey = process.env.API_KEY;
+const apiSecret = process.env.API_SECRET;
 
 app.get("/", (req, res) => {
     res.send("express app is running")
