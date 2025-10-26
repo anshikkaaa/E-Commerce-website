@@ -1,6 +1,7 @@
 # 🛍️ E-Commerce Website - MERN Stack
 This repository contains a full-stack **E-Commerce web application** built using the **MERN stack** (MongoDB, Express.js, React, Node.js). The platform allows users to browse and purchase clothing items, manage their cart, and log in to their accounts. Admins can manage products and monitor inventory.
 
+
 ### 👩‍💻 User Side:
 - User registration and login
 - Browse products by category (Men, Women, Kids)
